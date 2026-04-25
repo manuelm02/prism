@@ -1,0 +1,33 @@
+{
+  "name": "prism",
+  "version": "1.0.0",
+  "description": "Prism - Web UI for OpenCLI",
+  "main": "index.js",
+  "directories": {
+    "doc": "docs"
+  },
+  "scripts": {
+    "dev": "vite",
+    "build": "vue-tsc && vite build",
+    "preview": "vite preview",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "module",
+  "dependencies": {
+    "ant-design-vue": "^4.2.6",
+    "cors": "^2.8.6",
+    "express": "^5.2.1",
+    "vue": "^3.5.33"
+  },
+  "devDependencies": {
+    "@types/cors": "^2.8.19",
+    "@types/express": "^5.0.6",
+    "@types/node": "^25.6.0",
+    "@vitejs/plugin-vue": "^6.0.6",
+    "typescript": "^6.0.3",
+    "vite": "^8.0.10"
+  }
+}
