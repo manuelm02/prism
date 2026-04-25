@@ -1,6 +1,7 @@
 import { exec } from 'child_process'
 import { promisify } from 'util'
 import { Adapter, Command, ExecutionResult } from '../../utils/types'
+import { getSiteConfig, getCommandConfig, buildOpenCLIArgs } from '../../web/utils/adapter-config'
 
 const execAsync = promisify(exec)
 
@@ -38,6 +39,56 @@ export class OpenCLIService {
       return { success: true, data: stdout }
     } catch (error) {
       return { success: false, error: (error as Error).message }
+    }
+  }
+
+  async executeSiteCommand(siteId: string, commandId: string, params: Record<string, any>): Promise<ExecutionResult> {
+    try {
+      const siteConfig = getSiteConfig(siteId)
+      if (!siteConfig) {
+        return { success: false, error: `Site '${siteId}' not found` }
+      }
+
+      const commandConfig = getCommandConfig(siteId, commandId)
+      if (!commandConfig) {
+        return { success: false, error: `Command '${commandId}' not found for site '${siteId}'` }
+      }
+
+      const argsString = buildOpenCLIArgs(commandConfig, params)
+      const fullCommand = `opencli ${siteId} ${commandConfig.opencliCommand.replace(/^opencli \w+ /, '')} ${argsString}`.trim()
+      
+      console.log(`Executing: ${fullCommand}`)
+      
+      const { stdout, stderr } = await execAsync(fullCommand, { maxBuffer: 1024 * 1024 * 10 })
+
+      if (stderr && !stdout) {
+        return { success: false, error: stderr }
+      }
+
+      const result: ExecutionResult = {
+        success: true,
+        type: commandConfig.outputType
+      }
+
+      if (commandConfig.outputType === 'file') {
+        result.filePath = stdout.trim()
+      } else {
+        try {
+          result.data = JSON.parse(stdout)
+        } catch {
+          result.data = stdout
+          result.type = 'text'
+        }
+      }
+
+      return result
+    } catch (error) {
+      const err = error as Error & { stderr?: string; stdout?: string }
+      return { 
+        success: false, 
+        error: err.stderr || err.message,
+        data: err.stdout
+      }
     }
   }
 }

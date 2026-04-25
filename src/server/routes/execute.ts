@@ -15,4 +15,15 @@ router.post('/:adapter/:command', async (req, res) => {
   }
 })
 
+router.post('/sites/:site/execute', async (req, res) => {
+  try {
+    const { site } = req.params
+    const { command, params } = req.body
+    const result = await opencliService.executeSiteCommand(site, command, params || {})
+    res.json(result)
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to execute command', message: (error as Error).message })
+  }
+})
+
 export { router as executeRoutes }

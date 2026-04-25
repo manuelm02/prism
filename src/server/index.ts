@@ -10,9 +10,11 @@ app.use(cors())
 app.use(express.json())
 app.use('/api/adapters', adapterRoutes)
 app.use('/api/execute', executeRoutes)
+app.use('/api/sites', adapterRoutes)
 
 app.listen(PORT, () => {
   console.log(`Prism server running on port ${PORT}`)
+  console.log(`API available at http://localhost:${PORT}/api`)
 })
 
 export default app
