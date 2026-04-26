@@ -100,7 +100,8 @@ export interface ExecutionResult {
   error?: string
   /** 文件路径（文件类型结果） */
   filePath?: string
-  /** 输出类型提示 */
+  /** 输出类型提示（支持 type 和 outputType 两种字段名） */
+  type?: 'text' | 'json' | 'table' | 'file'
   outputType?: 'text' | 'json' | 'table' | 'file'
 }
 
@@ -118,27 +119,25 @@ const jsonCollapsed = ref(false)
  */
 const displayType = computed((): 'table' | 'json' | 'text' | 'file' | 'empty' => {
   if (!props.result.success) {
-    return 'text' // 错误信息作为文本显示
+    return 'text'
   }
 
-  // 如果有 filePath，优先作为文件类型
   if (props.result.filePath) {
     return 'file'
   }
 
-  // 如果有 outputType 提示，使用它
-  if (props.result.outputType) {
-    return props.result.outputType
+  // 支持 type 和 outputType 两种字段名
+  const outputType = props.result.type || props.result.outputType
+  if (outputType) {
+    return outputType
   }
 
-  // 根据 data 类型自动推断
   const data = props.result.data
 
   if (data === undefined || data === null) {
     return 'empty'
   }
 
-  // 数组且非空，检查是否为表格数据（对象数组）
   if (Array.isArray(data) && data.length > 0) {
     const firstItem = data[0]
     if (typeof firstItem === 'object' && firstItem !== null) {
@@ -147,14 +146,11 @@ const displayType = computed((): 'table' | 'json' | 'text' | 'file' | 'empty' =>
     return 'json'
   }
 
-  // 对象类型
   if (typeof data === 'object') {
     return 'json'
   }
 
-  // 字符串类型
   if (typeof data === 'string') {
-    // 尝试解析为 JSON
     try {
       const parsed = JSON.parse(data)
       if (Array.isArray(parsed) && parsed.length > 0 && typeof parsed[0] === 'object') {
