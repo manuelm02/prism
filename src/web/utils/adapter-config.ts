@@ -35,6 +35,8 @@ export interface ParamConfig {
   description: string
   /** 是否为位置参数 */
   positional?: boolean
+  /** 是否隐藏（不显示在表单中） */
+  hidden?: boolean
 }
 
 /**
@@ -71,6 +73,8 @@ export interface SiteConfig {
   description: string
   /** 网站域名 */
   domain: string
+  /** 网站主题色 */
+  themeColor?: string
   /** 命令列表 */
   commands: CommandConfig[]
 }
@@ -83,6 +87,7 @@ const bilibiliConfig: SiteConfig = {
   icon: '📺',
   description: 'B站视频、动态、评论等内容',
   domain: 'www.bilibili.com',
+  themeColor: '#00a1d6',
   commands: [
     {
       id: 'bilibili-video',
@@ -131,14 +136,15 @@ const bilibiliConfig: SiteConfig = {
           type: 'number',
           required: false,
           default: 1,
-          description: '结果页码'
+          description: '结果页码',
+          hidden: true
         },
         {
           name: 'limit',
           friendlyName: '结果数量',
           type: 'number',
           required: false,
-          default: 20,
+          default: 10,
           description: '返回结果数量'
         }
       ],
@@ -156,7 +162,7 @@ const bilibiliConfig: SiteConfig = {
           friendlyName: '结果数量',
           type: 'number',
           required: false,
-          default: 20,
+          default: 10,
           description: '返回视频数量'
         }
       ],
@@ -174,7 +180,7 @@ const bilibiliConfig: SiteConfig = {
           friendlyName: '结果数量',
           type: 'number',
           required: false,
-          default: 20,
+          default: 10,
           description: '返回视频数量'
         }
       ],
@@ -200,7 +206,7 @@ const bilibiliConfig: SiteConfig = {
           friendlyName: '评论数量',
           type: 'number',
           required: false,
-          default: 20,
+          default: 10,
           description: '返回评论数量（最多50）'
         }
       ],
@@ -286,7 +292,7 @@ const bilibiliConfig: SiteConfig = {
           friendlyName: '结果数量',
           type: 'number',
           required: false,
-          default: 20,
+          default: 10,
           description: '返回结果数量'
         },
         {
@@ -304,7 +310,8 @@ const bilibiliConfig: SiteConfig = {
           type: 'number',
           required: false,
           default: 1,
-          description: '页码'
+          description: '页码',
+          hidden: true
         }
       ],
       outputType: 'table',
@@ -329,7 +336,7 @@ const bilibiliConfig: SiteConfig = {
           friendlyName: '结果数量',
           type: 'number',
           required: false,
-          default: 20,
+          default: 10,
           description: '最大返回结果'
         },
         {
@@ -373,7 +380,8 @@ const bilibiliConfig: SiteConfig = {
           type: 'number',
           required: false,
           default: 1,
-          description: '页码'
+          description: '结果页码',
+          hidden: true
         },
         {
           name: 'limit',
@@ -398,7 +406,7 @@ const bilibiliConfig: SiteConfig = {
           friendlyName: '结果数量',
           type: 'number',
           required: false,
-          default: 20,
+          default: 10,
           description: '返回结果数量'
         }
       ],
@@ -414,16 +422,21 @@ const bilibiliConfig: SiteConfig = {
         {
           name: 'fid',
           friendlyName: '收藏夹ID',
-          type: 'number',
+          type: 'string',
           required: false,
-          description: '收藏夹ID（默认为第一个收藏夹）'
+          description: `收藏夹ID获取方法：
+1. 打开B站，进入"个人中心" → "收藏"
+2. 点击要查看的收藏夹
+3. 从浏览器地址栏复制URL中的 fid 参数值
+例如：space.bilibili.com/xxx/favlist?fid=123456
+则收藏夹ID为 123456`
         },
         {
           name: 'limit',
           friendlyName: '结果数量',
           type: 'number',
           required: false,
-          default: 20,
+          default: 10,
           description: '返回结果数量'
         },
         {
@@ -432,7 +445,8 @@ const bilibiliConfig: SiteConfig = {
           type: 'number',
           required: false,
           default: 1,
-          description: '页码'
+          description: '页码',
+          hidden: true
         }
       ],
       outputType: 'table',
@@ -458,6 +472,7 @@ const xiaohongshuConfig: SiteConfig = {
   icon: '📕',
   description: '小红书笔记、创作者中心、评论等',
   domain: 'www.xiaohongshu.com',
+  themeColor: '#fe2c55',
   commands: [
     {
       id: 'xiaohongshu-note',
@@ -496,7 +511,7 @@ const xiaohongshuConfig: SiteConfig = {
           friendlyName: '结果数量',
           type: 'number',
           required: false,
-          default: 20,
+          default: 10,
           description: '返回结果数量'
         }
       ],
@@ -514,7 +529,7 @@ const xiaohongshuConfig: SiteConfig = {
           friendlyName: '结果数量',
           type: 'number',
           required: false,
-          default: 20,
+          default: 10,
           description: '返回结果数量'
         }
       ],
@@ -540,7 +555,7 @@ const xiaohongshuConfig: SiteConfig = {
           friendlyName: '评论数量',
           type: 'number',
           required: false,
-          default: 20,
+          default: 10,
           description: '返回评论数量（最多50）'
         },
         {
@@ -574,7 +589,7 @@ const xiaohongshuConfig: SiteConfig = {
           friendlyName: '结果数量',
           type: 'number',
           required: false,
-          default: 15,
+          default: 10,
           description: '返回笔记数量'
         }
       ],
@@ -646,7 +661,7 @@ const xiaohongshuConfig: SiteConfig = {
           friendlyName: '结果数量',
           type: 'number',
           required: false,
-          default: 20,
+          default: 10,
           description: '返回笔记数量'
         }
       ],
@@ -691,7 +706,7 @@ const xiaohongshuConfig: SiteConfig = {
           friendlyName: '结果数量',
           type: 'number',
           required: false,
-          default: 20,
+          default: 10,
           description: '返回通知数量'
         }
       ],
@@ -748,535 +763,6 @@ const xiaohongshuConfig: SiteConfig = {
   ]
 }
 
-// ==================== 知乎配置 ====================
-
-const zhihuConfig: SiteConfig = {
-  id: 'zhihu',
-  name: '知乎',
-  icon: '🔵',
-  description: '知乎问答、文章、热榜等',
-  domain: 'www.zhihu.com',
-  commands: [
-    {
-      id: 'zhihu-hot',
-      name: '热榜',
-      description: '知乎热榜',
-      opencliCommand: 'hot',
-      params: [
-        {
-          name: 'limit',
-          friendlyName: '结果数量',
-          type: 'number',
-          required: false,
-          default: 20,
-          description: '返回热榜数量'
-        }
-      ],
-      outputType: 'table',
-      columns: ['rank', 'title', 'heat', 'answers']
-    },
-    {
-      id: 'zhihu-search',
-      name: '搜索',
-      description: '知乎搜索',
-      opencliCommand: 'search',
-      params: [
-        {
-          name: 'query',
-          friendlyName: '搜索关键词',
-          type: 'string',
-          required: true,
-          positional: true,
-          description: '搜索关键词'
-        },
-        {
-          name: 'limit',
-          friendlyName: '结果数量',
-          type: 'number',
-          required: false,
-          default: 10,
-          description: '返回结果数量'
-        }
-      ],
-      outputType: 'table',
-      columns: ['rank', 'title', 'type', 'author', 'votes', 'url']
-    },
-    {
-      id: 'zhihu-question',
-      name: '问题详情',
-      description: '知乎问题详情和回答',
-      opencliCommand: 'question',
-      params: [
-        {
-          name: 'id',
-          friendlyName: '问题ID',
-          type: 'string',
-          required: true,
-          positional: true,
-          description: '问题ID（数字）'
-        },
-        {
-          name: 'limit',
-          friendlyName: '回答数量',
-          type: 'number',
-          required: false,
-          default: 5,
-          description: '返回回答数量'
-        }
-      ],
-      outputType: 'table',
-      columns: ['rank', 'author', 'votes', 'content']
-    },
-    {
-      id: 'zhihu-download',
-      name: '下载文章',
-      description: '导出知乎文章为Markdown格式',
-      opencliCommand: 'download',
-      params: [
-        {
-          name: 'url',
-          friendlyName: '文章URL',
-          type: 'string',
-          required: true,
-          description: '文章URL（zhuanlan.zhihu.com/p/xxx）'
-        },
-        {
-          name: 'output',
-          friendlyName: '输出目录',
-          type: 'string',
-          required: false,
-          default: './zhihu-articles',
-          description: '输出目录'
-        },
-        {
-          name: 'download-images',
-          friendlyName: '下载图片',
-          type: 'boolean',
-          required: false,
-          default: false,
-          description: '是否下载图片到本地'
-        }
-      ],
-      outputType: 'table',
-      columns: ['title', 'author', 'publish_time', 'status', 'size']
-    },
-    {
-      id: 'zhihu-answer',
-      name: '回答问题',
-      description: '回答知乎问题',
-      opencliCommand: 'answer',
-      params: [
-        {
-          name: 'target',
-          friendlyName: '问题URL',
-          type: 'string',
-          required: true,
-          positional: true,
-          description: '知乎问题URL'
-        },
-        {
-          name: 'text',
-          friendlyName: '回答内容',
-          type: 'string',
-          required: false,
-          positional: true,
-          description: '回答文本'
-        },
-        {
-          name: 'file',
-          friendlyName: '回答文件',
-          type: 'string',
-          required: false,
-          description: '回答文本文件路径'
-        },
-        {
-          name: 'execute',
-          friendlyName: '执行操作',
-          type: 'boolean',
-          required: false,
-          description: '是否实际执行写入操作'
-        }
-      ],
-      outputType: 'table',
-      columns: ['status', 'outcome', 'message', 'target_type', 'target', 'created_target', 'created_url', 'author_identity']
-    },
-    {
-      id: 'zhihu-comment',
-      name: '发表评论',
-      description: '在知乎回答或文章上发表评论',
-      opencliCommand: 'comment',
-      params: [
-        {
-          name: 'target',
-          friendlyName: '目标URL',
-          type: 'string',
-          required: true,
-          positional: true,
-          description: '知乎目标URL'
-        },
-        {
-          name: 'text',
-          friendlyName: '评论内容',
-          type: 'string',
-          required: false,
-          positional: true,
-          description: '评论文本'
-        },
-        {
-          name: 'file',
-          friendlyName: '评论文件',
-          type: 'string',
-          required: false,
-          description: '评论文本文件路径'
-        },
-        {
-          name: 'execute',
-          friendlyName: '执行操作',
-          type: 'boolean',
-          required: false,
-          description: '是否实际执行写入操作'
-        }
-      ],
-      outputType: 'table',
-      columns: ['status', 'outcome', 'message', 'target_type', 'target', 'author_identity', 'created_url', 'created_proof']
-    },
-    {
-      id: 'zhihu-like',
-      name: '点赞',
-      description: '点赞知乎回答或文章',
-      opencliCommand: 'like',
-      params: [
-        {
-          name: 'target',
-          friendlyName: '目标URL',
-          type: 'string',
-          required: true,
-          positional: true,
-          description: '知乎目标URL'
-        },
-        {
-          name: 'execute',
-          friendlyName: '执行操作',
-          type: 'boolean',
-          required: false,
-          description: '是否实际执行写入操作'
-        }
-      ],
-      outputType: 'table',
-      columns: ['status', 'outcome', 'message', 'target_type', 'target']
-    },
-    {
-      id: 'zhihu-follow',
-      name: '关注',
-      description: '关注知乎用户或问题',
-      opencliCommand: 'follow',
-      params: [
-        {
-          name: 'target',
-          friendlyName: '目标URL',
-          type: 'string',
-          required: true,
-          positional: true,
-          description: '知乎目标URL'
-        },
-        {
-          name: 'execute',
-          friendlyName: '执行操作',
-          type: 'boolean',
-          required: false,
-          description: '是否实际执行写入操作'
-        }
-      ],
-      outputType: 'table',
-      columns: ['status', 'outcome', 'message', 'target_type', 'target']
-    },
-    {
-      id: 'zhihu-favorite',
-      name: '收藏',
-      description: '收藏知乎回答或文章到指定收藏夹',
-      opencliCommand: 'favorite',
-      params: [
-        {
-          name: 'target',
-          friendlyName: '目标URL',
-          type: 'string',
-          required: true,
-          positional: true,
-          description: '知乎目标URL'
-        },
-        {
-          name: 'collection',
-          friendlyName: '收藏夹名称',
-          type: 'string',
-          required: false,
-          description: '收藏夹名称'
-        },
-        {
-          name: 'collection-id',
-          friendlyName: '收藏夹ID',
-          type: 'string',
-          required: false,
-          description: '收藏夹ID'
-        },
-        {
-          name: 'execute',
-          friendlyName: '执行操作',
-          type: 'boolean',
-          required: false,
-          description: '是否实际执行写入操作'
-        }
-      ],
-      outputType: 'table',
-      columns: ['status', 'outcome', 'message', 'target_type', 'target', 'collection_name', 'collection_id']
-    }
-  ]
-}
-
-// ==================== 虎扑配置 ====================
-
-const hupuConfig: SiteConfig = {
-  id: 'hupu',
-  name: '虎扑',
-  icon: '🏀',
-  description: '虎扑论坛帖子、热帖、搜索等',
-  domain: 'bbs.hupu.com',
-  commands: [
-    {
-      id: 'hupu-hot',
-      name: '热帖',
-      description: '虎扑热门帖子',
-      opencliCommand: 'hot',
-      params: [
-        {
-          name: 'limit',
-          friendlyName: '结果数量',
-          type: 'number',
-          required: false,
-          default: 20,
-          description: '返回热帖数量'
-        }
-      ],
-      outputType: 'table',
-      columns: ['rank', 'title', 'url']
-    },
-    {
-      id: 'hupu-search',
-      name: '搜索帖子',
-      description: '搜索虎扑帖子',
-      opencliCommand: 'search',
-      params: [
-        {
-          name: 'query',
-          friendlyName: '搜索关键词',
-          type: 'string',
-          required: true,
-          positional: true,
-          description: '搜索关键词'
-        },
-        {
-          name: 'page',
-          friendlyName: '页码',
-          type: 'number',
-          required: false,
-          default: 1,
-          description: '结果页码'
-        },
-        {
-          name: 'limit',
-          friendlyName: '结果数量',
-          type: 'number',
-          required: false,
-          default: 20,
-          description: '返回结果数量'
-        },
-        {
-          name: 'forum',
-          friendlyName: '板块ID',
-          type: 'string',
-          required: false,
-          description: '板块ID过滤（可选）'
-        },
-        {
-          name: 'sort',
-          friendlyName: '排序方式',
-          type: 'select',
-          required: false,
-          default: 'general',
-          options: ['general', 'createtime', 'replytime', 'light', 'reply'],
-          description: '排序方式'
-        }
-      ],
-      outputType: 'table',
-      columns: ['rank', 'title', 'author', 'replies', 'lights', 'forum', 'url']
-    },
-    {
-      id: 'hupu-detail',
-      name: '帖子详情',
-      description: '获取虎扑帖子详情',
-      opencliCommand: 'detail',
-      params: [
-        {
-          name: 'tid',
-          friendlyName: '帖子ID',
-          type: 'string',
-          required: true,
-          positional: true,
-          description: '帖子ID（9位数字）'
-        },
-        {
-          name: 'replies',
-          friendlyName: '包含回复',
-          type: 'boolean',
-          required: false,
-          default: false,
-          description: '是否包含热门回复'
-        }
-      ],
-      outputType: 'json',
-      columns: ['title', 'author', 'content', 'replies', 'lights', 'url']
-    },
-    {
-      id: 'hupu-mentions',
-      name: '提到我的',
-      description: '查看虎扑提到我的回复（需要登录）',
-      opencliCommand: 'mentions',
-      params: [
-        {
-          name: 'limit',
-          friendlyName: '结果数量',
-          type: 'number',
-          required: false,
-          default: 20,
-          description: '最多返回消息数量'
-        },
-        {
-          name: 'max_pages',
-          friendlyName: '最大页数',
-          type: 'number',
-          required: false,
-          default: 3,
-          description: '最多抓取页数'
-        },
-        {
-          name: 'page_str',
-          friendlyName: '分页游标',
-          type: 'string',
-          required: false,
-          description: '分页游标；不传时从第一页开始'
-        }
-      ],
-      outputType: 'table',
-      columns: ['time', 'username', 'thread_title', 'post_content', 'quote_content', 'reply_url']
-    },
-    {
-      id: 'hupu-reply',
-      name: '回复帖子',
-      description: '回复虎扑帖子（需要登录）',
-      opencliCommand: 'reply',
-      params: [
-        {
-          name: 'tid',
-          friendlyName: '帖子ID',
-          type: 'string',
-          required: true,
-          positional: true,
-          description: '帖子ID（9位数字）'
-        },
-        {
-          name: 'topic_id',
-          friendlyName: '板块ID',
-          type: 'string',
-          required: true,
-          description: '板块ID（如 502 篮球资讯）'
-        },
-        {
-          name: 'text',
-          friendlyName: '回复内容',
-          type: 'string',
-          required: true,
-          positional: true,
-          description: '回复内容'
-        },
-        {
-          name: 'quote_id',
-          friendlyName: '引用回复ID',
-          type: 'string',
-          required: false,
-          description: '被引用回复的pid'
-        }
-      ],
-      outputType: 'table',
-      columns: ['status', 'message']
-    },
-    {
-      id: 'hupu-like',
-      name: '点赞回复',
-      description: '点赞虎扑回复（需要登录）',
-      opencliCommand: 'like',
-      params: [
-        {
-          name: 'tid',
-          friendlyName: '帖子ID',
-          type: 'string',
-          required: true,
-          positional: true,
-          description: '帖子ID（9位数字）'
-        },
-        {
-          name: 'pid',
-          friendlyName: '回复ID',
-          type: 'string',
-          required: true,
-          positional: true,
-          description: '回复ID'
-        },
-        {
-          name: 'fid',
-          friendlyName: '板块ID',
-          type: 'string',
-          required: true,
-          description: '板块ID（如278汽车区）'
-        }
-      ],
-      outputType: 'table',
-      columns: ['status', 'message']
-    },
-    {
-      id: 'hupu-unlike',
-      name: '取消点赞',
-      description: '取消点赞虎扑回复（需要登录）',
-      opencliCommand: 'unlike',
-      params: [
-        {
-          name: 'tid',
-          friendlyName: '帖子ID',
-          type: 'string',
-          required: true,
-          positional: true,
-          description: '帖子ID（9位数字）'
-        },
-        {
-          name: 'pid',
-          friendlyName: '回复ID',
-          type: 'string',
-          required: true,
-          positional: true,
-          description: '回复ID'
-        },
-        {
-          name: 'fid',
-          friendlyName: '板块ID',
-          type: 'string',
-          required: true,
-          description: '板块ID（如278汽车区）'
-        }
-      ],
-      outputType: 'table',
-      columns: ['status', 'message']
-    }
-  ]
-}
-
 // ==================== 携程配置 ====================
 
 const ctripConfig: SiteConfig = {
@@ -1285,6 +771,7 @@ const ctripConfig: SiteConfig = {
   icon: '✈️',
   description: '携程目的地、景区和酒店搜索',
   domain: 'www.ctrip.com',
+  themeColor: '#0086f6',
   commands: [
     {
       id: 'ctrip-search',
@@ -1305,7 +792,7 @@ const ctripConfig: SiteConfig = {
           friendlyName: '结果数量',
           type: 'number',
           required: false,
-          default: 15,
+          default: 10,
           description: '返回结果数量'
         }
       ],
@@ -1323,6 +810,7 @@ const taobaoConfig: SiteConfig = {
   icon: '🛒',
   description: '淘宝商品搜索、详情、购物车等',
   domain: 'www.taobao.com',
+  themeColor: '#ff5000',
   commands: [
     {
       id: 'taobao-search',
@@ -1414,7 +902,7 @@ const taobaoConfig: SiteConfig = {
           friendlyName: '结果数量',
           type: 'number',
           required: false,
-          default: 20,
+          default: 10,
           description: '返回数量（最多50）'
         }
       ],
@@ -1460,12 +948,10 @@ const taobaoConfig: SiteConfig = {
 // ==================== 所有网站配置 ====================
 
 export const siteConfigs: SiteConfig[] = [
-  bilibiliConfig,
   xiaohongshuConfig,
-  zhihuConfig,
-  hupuConfig,
-  ctripConfig,
-  taobaoConfig
+  bilibiliConfig,
+  taobaoConfig,
+  ctripConfig
 ]
 
 // ==================== 辅助函数 ====================
@@ -1526,9 +1012,9 @@ export function buildOpenCLIArgs(command: CommandConfig, paramValues: Record<str
     // 跳过没有值的可选参数
     if (finalValue === undefined || finalValue === '') continue
     
-    // 位置参数直接添加值
+    // 位置参数直接添加值（用单引号包裹以支持空格）
     if (param.positional) {
-      args.push(String(finalValue))
+      args.push(`'${String(finalValue).replace(/'/g, "'\\''")}'`)
     } else {
       // 命名参数使用 --name value 格式
       if (param.type === 'boolean') {
@@ -1536,7 +1022,8 @@ export function buildOpenCLIArgs(command: CommandConfig, paramValues: Record<str
           args.push(`--${param.name}`)
         }
       } else {
-        args.push(`--${param.name}`, String(finalValue))
+        // 用单引号包裹以支持空格
+        args.push(`--${param.name}`, `'${String(finalValue).replace(/'/g, "'\\''")}'`)
       }
     }
   }

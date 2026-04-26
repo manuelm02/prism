@@ -6,17 +6,31 @@
         <CheckCircleFilled v-if="result.success" class="result-icon success" />
         <CloseCircleFilled v-else class="result-icon error" />
         <span>{{ result.success ? '执行成功' : '执行失败' }}</span>
+        <span v-if="dataCount > 0" class="data-count">共 {{ dataCount }} 条</span>
       </div>
-      <a-button
-        v-if="showCopyButton"
-        type="text"
-        size="small"
-        class="copy-button"
-        @click="handleCopy"
-      >
-        <CopyOutlined />
-        <span class="copy-text">复制</span>
-      </a-button>
+      <div class="header-actions">
+        <a-button
+          v-if="displayType === 'table'"
+          type="text"
+          size="small"
+          class="action-button"
+          @click="toggleTableView"
+        >
+          <TableOutlined v-if="!tableViewMode" />
+          <UnorderedListOutlined v-else />
+          <span class="action-text">{{ tableViewMode ? '表格' : '列表' }}</span>
+        </a-button>
+        <a-button
+          v-if="showCopyButton"
+          type="text"
+          size="small"
+          class="action-button copy-button"
+          @click="handleCopy"
+        >
+          <CopyOutlined />
+          <span class="action-text">复制</span>
+        </a-button>
+      </div>
     </div>
 
     <!-- 结果内容区域 -->
@@ -39,15 +53,80 @@
       </div>
 
       <!-- 表格类型结果 -->
-      <div v-else-if="displayType === 'table'" class="result-table">
-        <a-table
-          :columns="tableColumns"
-          :data-source="tableData"
-          :pagination="tablePagination"
-          :scroll="{ x: 'max-content' }"
-          size="small"
-          bordered
-        />
+      <div v-else-if="displayType === 'table'" class="result-table-wrapper">
+        <!-- 表格视图 -->
+        <div v-if="!tableViewMode" class="result-table">
+          <a-table
+            :columns="computedTableColumns"
+            :data-source="tableData"
+            :pagination="tablePagination"
+            :scroll="{ x: 'max-content', y: 400 }"
+            size="small"
+            bordered
+          >
+            <template #bodyCell="{ column, record }">
+              <template v-if="column && column.key === '_actions'">
+                <div class="row-actions">
+                  <!-- 小红书操作 -->
+                  <template v-if="actionType === 'xiaohongshu'">
+                    <a-button type="link" size="small" @click="handleXiaohongshuAction('detail', record)">详情</a-button>
+                    <a-button type="link" size="small" @click="handleXiaohongshuAction('download', record)">下载</a-button>
+                    <a-button type="link" size="small" @click="handleXiaohongshuAction('comments', record)">评论</a-button>
+                  </template>
+                  <!-- 淘宝操作 -->
+                  <template v-else-if="actionType === 'taobao'">
+                    <a-button type="link" size="small" @click="handleTaobaoAction('detail', record)">详情</a-button>
+                    <a-button type="link" size="small" @click="handleTaobaoAction('reviews', record)">评价</a-button>
+                    <a-button type="link" size="small" @click="handleTaobaoAction('add-cart', record)">加购</a-button>
+                  </template>
+                  <!-- Bilibili 操作 -->
+                  <template v-else-if="actionType === 'bilibili'">
+                    <a-button type="link" size="small" @click="handleBilibiliAction('detail', record)">详情</a-button>
+                    <a-button type="link" size="small" @click="handleBilibiliAction('comments', record)">评论</a-button>
+                    <a-button type="link" size="small" @click="handleBilibiliAction('download', record)">下载</a-button>
+                  </template>
+                </div>
+              </template>
+              <template v-else-if="column && column.key === 'url'">
+                <a-tooltip v-if="record.url" :title="record.url">
+                  <span class="url-cell">{{ truncateUrl(record.url) }}</span>
+                </a-tooltip>
+              </template>
+              <template v-else-if="column && column.key === 'bvid'">
+                <span class="bvid-cell">{{ record.bvid || '-' }}</span>
+              </template>
+            </template>
+          </a-table>
+        </div>
+        <!-- 列表视图 -->
+        <div v-else class="result-list">
+            <div v-for="(item, index) in paginatedListData" :key="index" class="list-item">
+             <div v-for="col in tableColumns" :key="col.key" class="list-row">
+               <span class="list-label">{{ col.title }}:</span>
+               <span class="list-value">{{ formatCellValue((item as Record<string, unknown>)[String(col.dataIndex)]) }}</span>
+             </div>
+            <div v-if="showActions && hasActionableData" class="list-actions">
+              <!-- 小红书操作 -->
+              <template v-if="actionType === 'xiaohongshu'">
+                <a-button type="link" size="small" @click="handleXiaohongshuAction('detail', item)">详情</a-button>
+                <a-button type="link" size="small" @click="handleXiaohongshuAction('download', item)">下载</a-button>
+                <a-button type="link" size="small" @click="handleXiaohongshuAction('comments', item)">评论</a-button>
+              </template>
+              <!-- 淘宝操作 -->
+              <template v-else-if="actionType === 'taobao'">
+                <a-button type="link" size="small" @click="handleTaobaoAction('detail', item)">详情</a-button>
+                <a-button type="link" size="small" @click="handleTaobaoAction('reviews', item)">评价</a-button>
+                <a-button type="link" size="small" @click="handleTaobaoAction('add-cart', item)">加购</a-button>
+              </template>
+              <!-- Bilibili 操作 -->
+              <template v-else-if="actionType === 'bilibili'">
+                <a-button type="link" size="small" @click="handleBilibiliAction('detail', item)">详情</a-button>
+                <a-button type="link" size="small" @click="handleBilibiliAction('comments', item)">评论</a-button>
+                <a-button type="link" size="small" @click="handleBilibiliAction('download', item)">下载</a-button>
+              </template>
+            </div>
+            </div>
+         </div>
       </div>
 
       <!-- JSON 类型结果 -->
@@ -84,7 +163,9 @@ import {
   CloseCircleFilled,
   CopyOutlined,
   FileOutlined,
-  DownOutlined
+  DownOutlined,
+  TableOutlined,
+  UnorderedListOutlined
 } from '@ant-design/icons-vue'
 import type { TableColumnType, TableProps } from 'ant-design-vue'
 
@@ -105,14 +186,36 @@ export interface ExecutionResult {
   outputType?: 'text' | 'json' | 'table' | 'file'
 }
 
+const emit = defineEmits<{
+  (e: 'action', event: { action: string; url?: string; itemId?: string; bvid?: string }): void
+}>()
+
 // 定义 Props
 const props = defineProps<{
   /** 执行结果 */
   result: ExecutionResult
+  /** 是否显示操作按钮 */
+  showActions?: boolean
+  /** 操作类型：xiaohongshu | taobao | bilibili */
+  actionType?: 'xiaohongshu' | 'taobao' | 'bilibili'
 }>()
 
 // JSON 折叠状态
 const jsonCollapsed = ref(false)
+// 表格视图模式：false=表格, true=列表
+const tableViewMode = ref(false)
+// 列表视图分页
+const listCurrentPage = ref(1)
+const listPageSize = 10
+
+/**
+ * 数据总数
+ */
+const dataCount = computed(() => {
+  const data = props.result.data
+  if (Array.isArray(data)) return data.length
+  return 0
+})
 
 /**
  * 检测结果类型
@@ -126,18 +229,18 @@ const displayType = computed((): 'table' | 'json' | 'text' | 'file' | 'empty' =>
     return 'file'
   }
 
-  // 支持 type 和 outputType 两种字段名
-  const outputType = props.result.type || props.result.outputType
-  if (outputType) {
-    return outputType
-  }
-
   const data = props.result.data
 
   if (data === undefined || data === null) {
     return 'empty'
   }
 
+  // 单个对象直接显示为表格（field/value 形式）
+  if (typeof data === 'object' && !Array.isArray(data)) {
+    return 'table'
+  }
+
+  // 数组中的对象也显示为表格
   if (Array.isArray(data) && data.length > 0) {
     const firstItem = data[0]
     if (typeof firstItem === 'object' && firstItem !== null) {
@@ -146,13 +249,15 @@ const displayType = computed((): 'table' | 'json' | 'text' | 'file' | 'empty' =>
     return 'json'
   }
 
-  if (typeof data === 'object') {
-    return 'json'
-  }
-
+  // 字符串尝试解析
   if (typeof data === 'string') {
     try {
       const parsed = JSON.parse(data)
+      // 单个对象显示为表格
+      if (typeof parsed === 'object' && !Array.isArray(parsed)) {
+        return 'table'
+      }
+      // 数组中的对象也显示为表格
       if (Array.isArray(parsed) && parsed.length > 0 && typeof parsed[0] === 'object') {
         return 'table'
       }
@@ -176,7 +281,7 @@ const showCopyButton = computed(() => {
  * 表格列配置
  */
 const tableColumns = computed((): TableColumnType[] => {
-  const data = props.result.data
+  const data = tableData.value
   if (!Array.isArray(data) || data.length === 0) {
     return []
   }
@@ -186,14 +291,91 @@ const tableColumns = computed((): TableColumnType[] => {
     return []
   }
 
-  // 从第一个对象的键生成列
-  return Object.keys(firstItem).map(key => ({
-    title: formatColumnName(key),
-    dataIndex: key,
-    key: key,
-    ellipsis: true,
-    width: getColumnWidth(key)
-  }))
+  // 从第一个对象的键生成列（排除 _key）
+  return Object.keys(firstItem)
+    .filter(key => key !== '_key')
+    .map(key => ({
+      title: formatColumnName(key),
+      dataIndex: key,
+      key: key,
+      ellipsis: true,
+      width: getColumnWidth(key)
+    }))
+})
+
+/**
+ * 是否有 url 字段
+ */
+const hasUrlField = computed(() => {
+  const data = tableData.value
+  if (!Array.isArray(data) || data.length === 0) return false
+  const firstItem = data[0]
+  if (typeof firstItem !== 'object' || firstItem === null) return false
+  return 'url' in firstItem
+})
+
+/**
+ * URL 是否包含 xsec_token（只有包含签名的 URL 才能操作）
+ */
+const hasSignedUrl = computed(() => {
+  const data = tableData.value
+  if (!Array.isArray(data) || data.length === 0) return false
+  const firstItem = data[0]
+  if (typeof firstItem !== 'object' || firstItem === null) return false
+  const url = (firstItem as Record<string, unknown>).url as string
+  if (!url) return false
+  return url.includes('xsec_token')
+})
+
+/**
+ * 是否有 item_id 字段（淘宝）
+ */
+const hasItemId = computed(() => {
+  const data = tableData.value
+  if (!Array.isArray(data) || data.length === 0) return false
+  const firstItem = data[0]
+  if (typeof firstItem !== 'object' || firstItem === null) return false
+  return 'item_id' in firstItem
+})
+
+/**
+ * 是否有可操作的 BV 号（Bilibili）
+ */
+const hasBvid = computed(() => {
+  const data = tableData.value
+  if (!Array.isArray(data) || data.length === 0) return false
+  const firstItem = data[0]
+  if (typeof firstItem !== 'object' || firstItem === null) return false
+  const record = firstItem as Record<string, unknown>
+  const url = record.url as string
+  if (url && url.includes('/BV')) return true
+  return 'bvid' in firstItem
+})
+
+/**
+ * 是否有可操作的数据
+ */
+const hasActionableData = computed(() => {
+  if (props.actionType === 'xiaohongshu') return hasUrlField.value && hasSignedUrl.value
+  if (props.actionType === 'taobao') return hasItemId.value
+  if (props.actionType === 'bilibili') return hasBvid.value
+  return false
+})
+
+/**
+ * 带操作列的表格配置
+ */
+const computedTableColumns = computed((): TableColumnType[] => {
+  const cols = [...tableColumns.value]
+  if (props.showActions && hasActionableData.value) {
+    cols.push({
+      title: '操作',
+      key: '_actions',
+      width: 180,
+      fixed: 'right'
+    })
+  }
+  return cols
 })
 
 /**
@@ -201,6 +383,16 @@ const tableColumns = computed((): TableColumnType[] => {
  */
 const tableData = computed(() => {
   const data = props.result.data
+  
+  // 如果是单个对象，转换为键值对数组
+  if (typeof data === 'object' && data !== null && !Array.isArray(data)) {
+    return Object.entries(data).map(([key, value], index) => ({
+      _key: index,
+      field: key,
+      value: typeof value === 'object' ? JSON.stringify(value) : String(value)
+    }))
+  }
+  
   if (!Array.isArray(data)) {
     return []
   }
@@ -218,14 +410,16 @@ const tableData = computed(() => {
 })
 
 /**
- * 表格分页配置
+ * 列表视图数据 - 显示所有数据，不分页
  */
-const tablePagination: TableProps['pagination'] = {
-  pageSize: 20,
-  showSizeChanger: true,
-  showQuickJumper: true,
-  showTotal: (total) => `共 ${total} 条`
-}
+const paginatedListData = computed(() => {
+  return tableData.value
+})
+
+/**
+ * 表格分页配置 - 不分页，显示所有数据
+ */
+const tablePagination = false
 
 /**
  * JSON 语法高亮
@@ -277,10 +471,77 @@ function syntaxHighlight(json: string): string {
 }
 
 /**
- * 格式化列名
+ * 格式化列名 - 使用中文映射
  */
 function formatColumnName(key: string): string {
-  // 将下划线和驼峰转换为空格分隔的标题格式
+  const columnNameMap: Record<string, string> = {
+    field: '字段',
+    value: '值',
+    rank: '排名',
+    title: '标题',
+    author: '作者',
+    name: '名称',
+    score: '评分',
+    play: '播放量',
+    danmaku: '弹幕数',
+    likes: '点赞数',
+    collects: '收藏数',
+    comments: '评论数',
+    views: '观看数',
+    url: '链接',
+    bvid: 'BV号',
+    text: '内容',
+    time: '时间',
+    date: '日期',
+    status: '状态',
+    size: '大小',
+    index: '序号',
+    from: '开始时间',
+    to: '结束时间',
+    content: '内容',
+    mid: '用户ID',
+    sign: '签名',
+    following: '关注数',
+    fans: '粉丝数',
+    progress: '进度',
+    plays: '播放量',
+    published_at: '发布时间',
+    type: '类型',
+    id: 'ID',
+    item_id: '商品ID',
+    price: '价格',
+    sales: '销量',
+    shop: '店铺',
+    location: '地区',
+    user: '用户',
+    action: '操作',
+    note: '笔记',
+    replies: '回复数',
+    is_reply: '是否回复',
+    reply_to: '回复对象',
+    metric: '指标',
+    total: '总计',
+    trend: '趋势',
+    section: '分类',
+    extra: '备注',
+    uid: '用户ID',
+    level: '等级',
+    coins: '硬币',
+    followers: '粉丝',
+    fid: '收藏夹ID',
+    lang: '语言',
+    period: '周期',
+    query: '关键词',
+    limit: '数量限制',
+    page: '页码',
+    order: '排序',
+    pages: '页数'
+  }
+  
+  if (columnNameMap[key]) {
+    return columnNameMap[key]
+  }
+  
   return key
     .replace(/_/g, ' ')
     .replace(/([A-Z])/g, ' $1')
@@ -292,19 +553,133 @@ function formatColumnName(key: string): string {
  * 获取列宽度
  */
 function getColumnWidth(key: string): number | undefined {
-  // 根据键名推断宽度
   const widthMap: Record<string, number> = {
     rank: 60,
     id: 80,
     url: 200,
-    title: 200,
-    author: 100,
+    title: 250,
+    author: 120,
     name: 120,
     status: 80,
     time: 100,
-    date: 100
+    date: 100,
+    likes: 80,
+    collects: 80,
+    comments: 80,
+    views: 80,
+    plays: 80,
+    danmaku: 80,
+    score: 80,
+    price: 100,
+    sales: 80,
+    shop: 120,
+    location: 80,
+    item_id: 100,
+    text: 300,
+    content: 300,
+    replies: 80,
+    following: 80,
+    fans: 80,
+    progress: 80,
+    field: 100,
+    value: 200,
+    mid: 100,
+    sign: 150,
+    bvid: 120,
+    index: 60,
+    from: 80,
+    to: 80,
+    metric: 100,
+    total: 100,
+    trend: 100,
+    section: 80,
+    extra: 100,
+    uid: 100,
+    level: 60,
+    coins: 80,
+    followers: 80,
+    fid: 100,
+    type: 80,
+    user: 100,
+    action: 80,
+    note: 100,
+    is_reply: 80,
+    reply_to: 100,
+    published_at: 100
   }
   return widthMap[key.toLowerCase()]
+}
+
+/**
+ * 截断 URL 显示
+ */
+function truncateUrl(url: string): string {
+  if (!url) return '-'
+  if (url.length <= 40) return url
+  return url.substring(0, 40) + '...'
+}
+
+/**
+ * 从 URL 中提取 BV 号
+ */
+function extractBvid(url: string): string | null {
+  if (!url) return null
+  const match = url.match(/\/(BV[a-zA-Z0-9]+)/)
+  return match ? match[1] : null
+}
+
+/**
+ * 格式化单元格值
+ */
+function formatCellValue(value: unknown): string {
+  if (value === null || value === undefined) return '-'
+  if (typeof value === 'object') return JSON.stringify(value)
+  return String(value)
+}
+
+/**
+ * 小红书操作处理
+ */
+function handleXiaohongshuAction(action: string, record: Record<string, unknown>) {
+  const url = record.url as string
+  if (!url) {
+    message.warning('该记录没有URL')
+    return
+  }
+  emit('action', { action, url })
+}
+
+/**
+ * 淘宝操作处理
+ */
+function handleTaobaoAction(action: string, record: Record<string, unknown>) {
+  const itemId = record.item_id as string
+  if (!itemId) {
+    message.warning('该记录没有商品ID')
+    return
+  }
+  emit('action', { action, itemId })
+}
+
+/**
+ * Bilibili 操作处理
+ */
+function handleBilibiliAction(action: string, record: Record<string, unknown>) {
+  const url = record.url as string
+  const bvid = extractBvid(url) || (record.bvid as string)
+  if (!bvid) {
+    message.warning('该记录没有BV号')
+    return
+  }
+  emit('action', { action, bvid })
+}
+
+/**
+ * 切换表格/列表视图
+ */
+function toggleTableView() {
+  tableViewMode.value = !tableViewMode.value
+  listCurrentPage.value = 1
 }
 
 /**
@@ -348,11 +723,13 @@ async function handleCopy() {
   }
 }
 
-// 当结果变化时重置折叠状态
+// 当结果变化时重置状态
 watch(
   () => props.result,
   () => {
     jsonCollapsed.value = false
+    tableViewMode.value = false
+    listCurrentPage.value = 1
   }
 )
 </script>
@@ -363,6 +740,8 @@ watch(
   border: 1px solid var(--color-border);
   border-radius: var(--radius-lg);
   overflow: hidden;
+  display: flex;
+  flex-direction: column;
 }
 
 /* 结果头部 */
@@ -373,6 +752,7 @@ watch(
   padding: var(--spacing-sm) var(--spacing-md);
   background-color: var(--color-background);
   border-bottom: 1px solid var(--color-border);
+  flex-shrink: 0;
 }
 
 .result-title {
@@ -396,25 +776,40 @@ watch(
   color: #ff4d4f;
 }
 
-.copy-button {
+.data-count {
+  font-weight: 400;
+  color: var(--color-text-weak);
+  font-size: var(--font-size-xs);
+  margin-left: var(--spacing-xs);
+}
+
+.header-actions {
   display: flex;
   align-items: center;
   gap: var(--spacing-xs);
-  color: var(--color-text-weak);
-  font-size: var(--font-size-xs);
 }
 
-.copy-button:hover {
+.action-button {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--color-text-weak);
+  font-size: var(--font-size-xs);
+  padding: 4px 8px;
+}
+
+.action-button:hover {
   color: var(--color-primary);
 }
 
-.copy-text {
+.action-text {
   margin-left: 2px;
 }
 
 /* 结果内容区域 */
 .result-content {
   padding: var(--spacing-md);
+  overflow: auto;
 }
 
 /* 错误信息 */
@@ -476,8 +871,80 @@ watch(
 }
 
 /* 表格类型结果 */
+.result-table-wrapper {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
 .result-table {
-  overflow-x: auto;
+  overflow: auto;
+  flex: 1;
+}
+
+.row-actions {
+  display: flex;
+  gap: 4px;
+  flex-wrap: nowrap;
+}
+
+.row-actions :deep(.ant-btn-link) {
+  padding: 0 4px;
+  font-size: 12px;
+}
+
+.url-cell {
+  color: var(--color-primary);
+  font-size: 12px;
+  cursor: pointer;
+}
+
+/* 列表视图 */
+.result-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+}
+
+.list-item {
+  background-color: var(--color-background);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: var(--spacing-sm) var(--spacing-md);
+}
+
+.list-row {
+  display: flex;
+  align-items: flex-start;
+  padding: 4px 0;
+  font-size: var(--font-size-sm);
+}
+
+.list-label {
+  flex-shrink: 0;
+  width: 100px;
+  font-weight: 500;
+  color: var(--color-text-weak);
+}
+
+.list-value {
+  flex: 1;
+  color: var(--color-text);
+  word-break: break-all;
+}
+
+.list-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px solid var(--color-border);
+}
+
+.list-pagination {
+  display: flex;
+  justify-content: center;
+  padding: var(--spacing-md) 0;
 }
 
 /* JSON 类型结果 */
@@ -585,9 +1052,16 @@ watch(
   font-size: var(--font-size-sm);
 }
 
+:deep(.ant-table-wrapper) {
+  overflow: auto;
+}
+
 :deep(.ant-table-thead > tr > th) {
   background-color: var(--color-surface);
   font-weight: 500;
+  position: sticky;
+  top: 0;
+  z-index: 1;
 }
 
 :deep(.ant-table-tbody > tr > td) {

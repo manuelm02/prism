@@ -23,7 +23,8 @@ export interface Parameter {
 
 export interface ExecutionResult {
   success: boolean
-  data?: string
+  data?: unknown
   filePath?: string
   error?: string
+  type?: 'text' | 'json' | 'table' | 'file'
 }

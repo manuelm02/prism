@@ -1,14 +1,18 @@
 import { exec } from 'child_process'
 import { promisify } from 'util'
+import * as yaml from 'yaml'
 import { Adapter, Command, ExecutionResult } from '../../utils/types'
 import { getSiteConfig, getCommandConfig, buildOpenCLIArgs } from '../../web/utils/adapter-config'
 
 const execAsync = promisify(exec)
 
+// OpenCLI 完整路径（Node 24 版本）
+const OPENCLI_PATH = '/Users/manuelm/.nvm/versions/node/v24.14.1/bin/opencli'
+
 export class OpenCLIService {
   async checkInstallation(): Promise<boolean> {
     try {
-      await execAsync('opencli --version')
+      await execAsync(`${OPENCLI_PATH} --version`)
       return true
     } catch {
       return false
@@ -17,7 +21,7 @@ export class OpenCLIService {
 
   async getAdapters(): Promise<Adapter[]> {
     try {
-      const { stdout } = await execAsync('opencli list --format json')
+      const { stdout } = await execAsync(`${OPENCLI_PATH} list --format json`)
       return JSON.parse(stdout)
     } catch (error) {
       throw new Error('Failed to fetch adapters')
@@ -30,7 +34,7 @@ export class OpenCLIService {
         .map(([key, value]) => `--${key} ${value}`)
         .join(' ')
 
-      const { stdout, stderr } = await execAsync(`opencli ${adapter} ${command} ${argsString}`)
+      const { stdout, stderr } = await execAsync(`${OPENCLI_PATH} ${adapter} ${command} ${argsString}`)
 
       if (stderr) {
         return { success: false, error: stderr }
@@ -58,11 +62,13 @@ export class OpenCLIService {
       const argsString = buildOpenCLIArgs(commandConfig, params)
       
       // opencliCommand 是子命令名（如 "video", "search"）
-      const fullCommand = `opencli ${siteId} ${commandConfig.opencliCommand} ${argsString}`.trim()
+      const fullCommand = `${OPENCLI_PATH} ${siteId} ${commandConfig.opencliCommand} ${argsString}`.trim()
       
       console.log(`[OpenCLI] Executing: ${fullCommand}`)
       
-      const { stdout, stderr } = await execAsync(fullCommand, { maxBuffer: 1024 * 1024 * 10 })
+      const { stdout, stderr } = await execAsync(fullCommand, { 
+        maxBuffer: 1024 * 1024 * 10 
+      })
 
       if (stderr && !stdout) {
         return { success: false, error: stderr }
@@ -79,8 +85,13 @@ export class OpenCLIService {
         try {
           result.data = JSON.parse(stdout)
         } catch {
-          result.data = stdout
-          result.type = 'text'
+          try {
+            const parsed = yaml.parse(stdout)
+            result.data = parsed
+          } catch {
+            result.data = stdout
+            result.type = 'text'
+          }
         }
       }
 

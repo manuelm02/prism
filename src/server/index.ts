@@ -2,6 +2,7 @@ import express from 'express'
 import cors from 'cors'
 import { adapterRoutes } from './routes/adapters'
 import { executeRoutes } from './routes/execute'
+import { systemRoutes } from './routes/system'
 
 const app = express()
 const PORT = process.env.PORT || 3000
@@ -12,6 +13,7 @@ app.use(express.json())
 // API 路由
 app.use('/api/adapters', adapterRoutes)
 app.use('/api/execute', executeRoutes)
+app.use('/api/system', systemRoutes)
 app.use('/api/sites', adapterRoutes)
 app.use('/api/sites', executeRoutes)
 

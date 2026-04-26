@@ -1,0 +1,14 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "esModuleInterop": true,
+    "strict": false,
+    "skipLibCheck": true,
+    "outDir": "./dist",
+    "declaration": false
+  },
+  "include": ["src/cli/**/*", "src/server/**/*", "src/web/utils/**/*", "src/utils/**/*"],
+  "exclude": ["node_modules", "dist"]
+}

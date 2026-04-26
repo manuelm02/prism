@@ -1,42 +1,64 @@
 {
-  "name": "prism",
-  "version": "1.0.0",
-  "description": "Prism - Web UI for OpenCLI",
-  "main": "index.js",
+  "name": "@manuelm02/prism-cli",
+  "version": "1.0.1",
+  "description": "Prism - 可视化网页数据采集工具，为 OpenCLI 提供友好的图形界面",
+  "main": "dist/cli/index.js",
   "bin": {
-    "prism": "./dist/cli/index.js"
+    "prism": "dist/cli/index.js"
   },
-  "directories": {
-    "doc": "docs"
-  },
+  "files": [
+    "dist",
+    "README.md"
+  ],
   "scripts": {
     "dev:server": "npx tsx src/server/index.ts",
     "dev:web": "vite",
-    "dev": "npm run dev:server & npm run dev:web",
-    "build": "vue-tsc --noEmit && vite build",
-    "build:server": "npx tsc src/server/index.ts --outDir dist/server --esModuleInterop --module nodenext --moduleResolution nodenext",
+    "dev": "concurrently \"npm run dev:server\" \"npm run dev:web\"",
+    "build:web": "vue-tsc --noEmit && vite build",
+    "build:bundle": "node scripts/build.mjs",
+    "build": "npm run build:web && npm run build:bundle",
     "preview": "vite preview",
-    "start": "node dist/server/index.js"
+    "start": "node dist/cli/index.js",
+    "prepublishOnly": "npm run build"
   },
-  "keywords": [],
+  "keywords": [
+    "opencli",
+    "web-scraper",
+    "data-extraction",
+    "bilibili",
+    "xiaohongshu",
+    "taobao",
+    "ctrip"
+  ],
   "author": "",
-  "license": "ISC",
+  "license": "MIT",
   "type": "module",
+  "engines": {
+    "node": ">=18.0.0"
+  },
   "dependencies": {
-    "ant-design-vue": "^4.2.6",
-    "commander": "^14.0.3",
     "cors": "^2.8.6",
     "express": "^5.2.1",
-    "vue": "^3.5.33"
+    "open": "^11.0.0",
+    "yaml": "^2.8.3"
   },
   "devDependencies": {
     "@types/cors": "^2.8.19",
     "@types/express": "^5.0.6",
     "@types/node": "^25.6.0",
     "@vitejs/plugin-vue": "^6.0.6",
+    "ant-design-vue": "^4.2.6",
+    "concurrently": "^9.1.2",
+    "esbuild": "^0.28.0",
+    "ts-node": "^10.9.2",
     "tsx": "^4.21.0",
     "typescript": "^6.0.3",
     "vite": "^8.0.10",
+    "vue": "^3.5.33",
     "vue-tsc": "^2.2.8"
+  },
+  "repository": {
+    "type": "git",
+    "url": ""
   }
 }
