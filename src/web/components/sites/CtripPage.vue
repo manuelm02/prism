@@ -1,222 +1,413 @@
 <template>
-  <div class="ctrip-page">
-    <!-- 页面头部 -->
-    <header class="page-header">
-      <div class="header-icon">{{ siteConfig.icon }}</div>
-      <div class="header-info">
+  <div class="site-page ctrip">
+    <header class="site-header">
+      <div class="header-badge">
+        <span class="header-icon">{{ siteConfig.icon }}</span>
+      </div>
+      <div class="header-content">
         <h1 class="header-title">{{ siteConfig.name }}</h1>
-        <p class="header-description">{{ siteConfig.description }}</p>
+        <p class="header-desc">{{ siteConfig.description }}</p>
+      </div>
+      <div class="header-stats">
+        <span class="stat-item">
+          <span class="stat-value">{{ siteConfig.commands.length }}</span>
+          <span class="stat-label">功能</span>
+        </span>
       </div>
     </header>
 
-    <!-- 命令卡片网格 -->
-    <div class="commands-grid">
-      <div
-        v-for="command in siteConfig.commands"
-        :key="command.id"
-        class="command-card"
-      >
-        <!-- 卡片头部 -->
-        <div class="card-header">
-          <h3 class="card-title">{{ command.name }}</h3>
-          <p class="card-description">{{ command.description }}</p>
-        </div>
-
-        <!-- 参数表单 -->
-        <div class="card-form">
-          <ParamForm
-            :params="command.params"
-            :loading="loadingStates[command.id]"
-            @submit="(values) => handleExecute(command, values)"
-          />
-        </div>
-
-        <!-- 结果展示 -->
-        <div v-if="results[command.id]" class="card-result">
-          <ResultDisplay :result="results[command.id]" />
-        </div>
-      </div>
+    <div class="tabs-container">
+      <a-tabs v-model:activeKey="activeCommand" type="card" class="command-tabs">
+        <a-tab-pane v-for="command in siteConfig.commands" :key="command.id">
+          <template #tab>
+            <span class="tab-label">
+              <span class="tab-name">{{ command.name }}</span>
+            </span>
+          </template>
+          
+          <div class="command-panel">
+            <div class="panel-sidebar">
+              <div class="command-info">
+                <h2 class="command-title">{{ command.name }}</h2>
+                <p class="command-desc">{{ command.description }}</p>
+              </div>
+              
+              <div class="params-section">
+                <h3 class="section-title">参数配置</h3>
+                <ParamForm
+                  :params="command.params"
+                  :loading="loadingStates[command.id]"
+                  @submit="(values) => handleExecute(command, values)"
+                />
+              </div>
+            </div>
+            
+            <div class="panel-main">
+              <div class="result-section">
+                <div class="result-header">
+                  <h3 class="section-title">执行结果</h3>
+                  <span v-if="results[command.id]" class="result-status" :class="results[command.id].success ? 'success' : 'error'">
+                    {{ results[command.id].success ? '成功' : '失败' }}
+                  </span>
+                </div>
+                
+                <div v-if="results[command.id]" class="result-content">
+                  <ResultDisplay :result="results[command.id]" />
+                </div>
+                
+                <div v-else class="result-placeholder">
+                  <div class="placeholder-icon">📋</div>
+                  <p class="placeholder-text">填写参数后点击"执行"查看结果</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </a-tab-pane>
+      </a-tabs>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { reactive } from 'vue'
+import { ref, reactive } from 'vue'
 import ParamForm from '../common/ParamForm.vue'
 import ResultDisplay from '../common/ResultDisplay.vue'
-import { getSiteConfig, type CommandConfig, type ParamConfig } from '../../utils/adapter-config'
+import { getSiteConfig, type CommandConfig } from '../../utils/adapter-config'
 import type { ExecutionResult } from '../common/ResultDisplay.vue'
 
-// 获取携程网站配置
 const siteConfig = getSiteConfig('ctrip')!
-
-// 每个命令的执行结果
+const activeCommand = ref(siteConfig.commands[0]?.id || '')
 const results = reactive<Record<string, ExecutionResult>>({})
-
-// 每个命令的加载状态
 const loadingStates = reactive<Record<string, boolean>>({})
 
-/**
- * 执行命令
- */
 async function handleExecute(
   command: CommandConfig,
   paramValues: Record<string, string | number | boolean>
 ) {
-  // 设置加载状态
   loadingStates[command.id] = true
-
+  
   try {
-    // 调用后端 API
     const response = await fetch('/api/sites/ctrip/execute', {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        command: command.id,
-        params: paramValues
-      })
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ command: command.id, params: paramValues })
     })
-
+    
     const data = await response.json()
-
+    
     if (response.ok && data.success) {
-      // 成功结果
       results[command.id] = {
         success: true,
         data: data.data,
         outputType: command.outputType
       }
     } else {
-      // 错误结果
       results[command.id] = {
         success: false,
-        error: data.error || `请求失败: ${response.status} ${response.statusText}`
+        error: data.error || `请求失败: ${response.status}`
       }
     }
   } catch (error) {
-    // 网络错误或其他异常
     results[command.id] = {
       success: false,
       error: error instanceof Error ? error.message : '未知错误'
     }
   } finally {
-    // 清除加载状态
     loadingStates[command.id] = false
   }
 }
 </script>
 
 <style scoped>
-.ctrip-page {
-  padding: var(--spacing-lg);
-  max-width: 1400px;
-  margin: 0 auto;
+.site-page {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%);
 }
 
-/* 页面头部 */
-.page-header {
+.site-header {
+  background: linear-gradient(135deg, #059669 0%, #10b981 100%);
+  padding: 32px 40px;
   display: flex;
   align-items: center;
-  gap: var(--spacing-md);
-  margin-bottom: var(--spacing-xl);
-  padding-bottom: var(--spacing-lg);
-  border-bottom: 1px solid var(--color-border);
+  gap: 24px;
+  color: white;
+  position: relative;
+  overflow: hidden;
+}
+
+.site-header::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.08'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+  opacity: 0.3;
+}
+
+.header-badge {
+  width: 72px;
+  height: 72px;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  backdrop-filter: blur(10px);
+  position: relative;
+  z-index: 1;
 }
 
 .header-icon {
-  font-size: 48px;
-  line-height: 1;
+  font-size: 36px;
 }
 
-.header-info {
+.header-content {
   flex: 1;
+  position: relative;
+  z-index: 1;
 }
 
 .header-title {
-  font-size: var(--font-size-3xl);
-  font-weight: 600;
-  color: var(--color-text);
-  margin: 0 0 var(--spacing-xs) 0;
+  font-size: 28px;
+  font-weight: 700;
+  margin: 0 0 4px 0;
+  letter-spacing: -0.5px;
 }
 
-.header-description {
-  font-size: var(--font-size-md);
-  color: var(--color-text-weak);
+.header-desc {
+  font-size: 14px;
+  margin: 0;
+  opacity: 0.9;
+}
+
+.header-stats {
+  display: flex;
+  gap: 24px;
+  position: relative;
+  z-index: 1;
+}
+
+.stat-item {
+  text-align: center;
+  background: rgba(255, 255, 255, 0.15);
+  padding: 12px 20px;
+  border-radius: 12px;
+  backdrop-filter: blur(10px);
+}
+
+.stat-value {
+  display: block;
+  font-size: 24px;
+  font-weight: 700;
+}
+
+.stat-label {
+  font-size: 12px;
+  opacity: 0.8;
+}
+
+.tabs-container {
+  padding: 24px;
+  max-width: 1600px;
+  margin: 0 auto;
+}
+
+.command-tabs {
+  background: white;
+  border-radius: 16px;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.06);
+  overflow: hidden;
+}
+
+.command-tabs :deep(.ant-tabs-nav) {
+  background: #fafbfc;
+  border-bottom: 1px solid #e8eaed;
+  padding: 8px 16px 0;
   margin: 0;
 }
 
-/* 命令卡片网格 */
-.commands-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
-  gap: var(--spacing-lg);
+.command-tabs :deep(.ant-tabs-tab) {
+  border-radius: 10px 10px 0 0 !important;
+  border: 1px solid transparent !important;
+  background: transparent !important;
+  padding: 12px 20px !important;
+  margin: 0 4px !important;
+  transition: all 0.2s ease;
 }
 
-/* 命令卡片 */
-.command-card {
-  background-color: var(--color-background);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-card);
-  overflow: hidden;
+.command-tabs :deep(.ant-tabs-tab:hover) {
+  background: #ecfdf5 !important;
+}
+
+.command-tabs :deep(.ant-tabs-tab-active) {
+  background: white !important;
+  border-color: #e8eaed !important;
+  border-bottom-color: white !important;
+}
+
+.command-tabs :deep(.ant-tabs-ink-bar) {
+  display: none;
+}
+
+.tab-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.tab-name {
+  font-weight: 500;
+  color: #1f2937;
+}
+
+.command-tabs :deep(.ant-tabs-tab-active) .tab-name {
+  color: #059669;
+}
+
+.command-tabs :deep(.ant-tabs-content) {
+  padding: 0;
+}
+
+.command-panel {
+  display: grid;
+  grid-template-columns: 360px 1fr;
+  min-height: 600px;
+}
+
+.panel-sidebar {
+  background: #fafbfc;
+  border-right: 1px solid #e8eaed;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.command-info {
+  background: white;
+  padding: 20px;
+  border-radius: 12px;
+  border: 1px solid #e8eaed;
+}
+
+.command-title {
+  font-size: 20px;
+  font-weight: 600;
+  color: #1f2937;
+  margin: 0 0 8px 0;
+}
+
+.command-desc {
+  font-size: 14px;
+  color: #6b7280;
+  margin: 0;
+  line-height: 1.6;
+}
+
+.params-section {
+  flex: 1;
+}
+
+.section-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: #374151;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin: 0 0 16px 0;
+  padding-bottom: 12px;
+  border-bottom: 2px solid #e5e7eb;
+}
+
+.panel-main {
+  padding: 24px;
   display: flex;
   flex-direction: column;
 }
 
-.card-header {
-  padding: var(--spacing-md);
-  border-bottom: 1px solid var(--color-border);
-  background-color: var(--color-surface);
+.result-section {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
 }
 
-.card-title {
-  font-size: var(--font-size-lg);
-  font-weight: 500;
-  color: var(--color-text);
-  margin: 0 0 var(--spacing-xs) 0;
+.result-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
 }
 
-.card-description {
-  font-size: var(--font-size-sm);
-  color: var(--color-text-weak);
+.result-status {
+  font-size: 12px;
+  font-weight: 600;
+  padding: 4px 12px;
+  border-radius: 20px;
+}
+
+.result-status.success {
+  background: #d1fae5;
+  color: #059669;
+}
+
+.result-status.error {
+  background: #fee2e2;
+  color: #dc2626;
+}
+
+.result-content {
+  flex: 1;
+  background: #f9fafb;
+  border-radius: 12px;
+  border: 1px solid #e5e7eb;
+  overflow: hidden;
+}
+
+.result-placeholder {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: #f9fafb;
+  border-radius: 12px;
+  border: 2px dashed #d1d5db;
+  min-height: 400px;
+}
+
+.placeholder-icon {
+  font-size: 48px;
+  margin-bottom: 16px;
+  opacity: 0.5;
+}
+
+.placeholder-text {
+  font-size: 15px;
+  color: #9ca3af;
   margin: 0;
-  line-height: 1.4;
 }
 
-.card-form {
-  padding: var(--spacing-md);
-}
-
-.card-result {
-  padding: var(--spacing-md);
-  border-top: 1px solid var(--color-border);
-  background-color: var(--color-surface);
-}
-
-/* 响应式调整 */
-@media (max-width: 768px) {
-  .ctrip-page {
-    padding: var(--spacing-md);
-  }
-
-  .commands-grid {
+@media (max-width: 1024px) {
+  .command-panel {
     grid-template-columns: 1fr;
   }
-
-  .page-header {
+  
+  .panel-sidebar {
+    border-right: none;
+    border-bottom: 1px solid #e8eaed;
+  }
+  
+  .site-header {
     flex-direction: column;
-    align-items: flex-start;
-    text-align: left;
+    text-align: center;
+    padding: 24px;
   }
-
-  .header-icon {
-    font-size: 36px;
-  }
-
-  .header-title {
-    font-size: var(--font-size-2xl);
+  
+  .header-stats {
+    width: 100%;
+    justify-content: center;
   }
 }
 </style>
