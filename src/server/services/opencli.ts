@@ -54,10 +54,13 @@ export class OpenCLIService {
         return { success: false, error: `Command '${commandId}' not found for site '${siteId}'` }
       }
 
+      // 构建参数字符串
       const argsString = buildOpenCLIArgs(commandConfig, params)
-      const fullCommand = `opencli ${siteId} ${commandConfig.opencliCommand.replace(/^opencli \w+ /, '')} ${argsString}`.trim()
       
-      console.log(`Executing: ${fullCommand}`)
+      // opencliCommand 是子命令名（如 "video", "search"）
+      const fullCommand = `opencli ${siteId} ${commandConfig.opencliCommand} ${argsString}`.trim()
+      
+      console.log(`[OpenCLI] Executing: ${fullCommand}`)
       
       const { stdout, stderr } = await execAsync(fullCommand, { maxBuffer: 1024 * 1024 * 10 })
 

@@ -74,7 +74,7 @@ async function handleExecute(
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({
-        command: command.opencliCommand,
+        command: command.id,
         params: paramValues
       })
     })

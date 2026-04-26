@@ -63,18 +63,16 @@ async function handleExecute(
   command: CommandConfig,
   paramValues: Record<string, string | number | boolean>
 ) {
-  // 设置加载状态
   loadingStates[command.id] = true
 
   try {
-    // 调用后端 API
     const response = await fetch('/api/sites/bilibili/execute', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({
-        command: command.opencliCommand,
+        command: command.id,
         params: paramValues
       })
     })
