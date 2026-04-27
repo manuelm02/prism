@@ -11,16 +11,19 @@ const __dirname = dirname(__filename)
 const DEFAULT_PORT = 3000
 
 function findOpenCLI(): string | null {
-  const paths = [
+  if (process.env.OPENCLI_PATH && existsSync(process.env.OPENCLI_PATH)) {
+    return process.env.OPENCLI_PATH
+  }
+  
+  const commonPaths = [
     '/usr/local/bin/opencli',
     '/usr/bin/opencli',
-    join(process.env.HOME || '', '.nvm/versions/node/v24.14.1/bin/opencli'),
   ]
   
-  if (process.platform === 'darwin') {
-    const nvmPath = join(process.env.HOME || '', '.nvm/versions/node')
+  if (process.platform === 'darwin' || process.platform === 'linux') {
+    const nvmPath = join(process.env.HOME || '', '.nvm', 'versions', 'node')
     if (existsSync(nvmPath)) {
-      const versions = readdirSync(nvmPath).filter(v => v.startsWith('v2'))
+      const versions = readdirSync(nvmPath).filter(v => v.startsWith('v'))
       for (const version of versions.sort().reverse()) {
         const opencliPath = join(nvmPath, version, 'bin', 'opencli')
         if (existsSync(opencliPath)) {
@@ -28,13 +31,29 @@ function findOpenCLI(): string | null {
         }
       }
     }
+    
+    const fnmPath = join(process.env.HOME || '', '.fnm', 'node_versions')
+    if (existsSync(fnmPath)) {
+      const versions = readdirSync(fnmPath).filter(v => v.startsWith('v'))
+      for (const version of versions.sort().reverse()) {
+        const opencliPath = join(fnmPath, version, 'installation', 'bin', 'opencli')
+        if (existsSync(opencliPath)) {
+          return opencliPath
+        }
+      }
+    }
   }
   
-  for (const p of paths) {
+  for (const p of commonPaths) {
     if (existsSync(p)) return p
   }
   
-  return null
+  try {
+    const result = spawn('which', ['opencli'], { stdio: 'pipe' })
+    return 'opencli'
+  } catch {
+    return null
+  }
 }
 
 function getStaticDir(): string {

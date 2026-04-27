@@ -6,13 +6,17 @@ import { getSiteConfig, getCommandConfig, buildOpenCLIArgs } from '../../web/uti
 
 const execAsync = promisify(exec)
 
-// OpenCLI 完整路径（Node 24 版本）
-const OPENCLI_PATH = '/Users/manuelm/.nvm/versions/node/v24.14.1/bin/opencli'
+function getOpenCLIPath(): string {
+  if (process.env.OPENCLI_PATH) {
+    return process.env.OPENCLI_PATH
+  }
+  return 'opencli'
+}
 
 export class OpenCLIService {
   async checkInstallation(): Promise<boolean> {
     try {
-      await execAsync(`${OPENCLI_PATH} --version`)
+      await execAsync(`${getOpenCLIPath()} --version`)
       return true
     } catch {
       return false
@@ -21,7 +25,7 @@ export class OpenCLIService {
 
   async getAdapters(): Promise<Adapter[]> {
     try {
-      const { stdout } = await execAsync(`${OPENCLI_PATH} list --format json`)
+      const { stdout } = await execAsync(`${getOpenCLIPath()} list --format json`)
       return JSON.parse(stdout)
     } catch (error) {
       throw new Error('Failed to fetch adapters')
@@ -34,7 +38,7 @@ export class OpenCLIService {
         .map(([key, value]) => `--${key} ${value}`)
         .join(' ')
 
-      const { stdout, stderr } = await execAsync(`${OPENCLI_PATH} ${adapter} ${command} ${argsString}`)
+      const { stdout, stderr } = await execAsync(`${getOpenCLIPath()} ${adapter} ${command} ${argsString}`)
 
       if (stderr) {
         return { success: false, error: stderr }
@@ -58,11 +62,9 @@ export class OpenCLIService {
         return { success: false, error: `Command '${commandId}' not found for site '${siteId}'` }
       }
 
-      // 构建参数字符串
       const argsString = buildOpenCLIArgs(commandConfig, params)
       
-      // opencliCommand 是子命令名（如 "video", "search"）
-      const fullCommand = `${OPENCLI_PATH} ${siteId} ${commandConfig.opencliCommand} ${argsString}`.trim()
+      const fullCommand = `${getOpenCLIPath()} ${siteId} ${commandConfig.opencliCommand} ${argsString}`.trim()
       
       console.log(`[OpenCLI] Executing: ${fullCommand}`)
       
