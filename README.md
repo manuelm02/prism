@@ -32,7 +32,7 @@ Prism 是一个为 [OpenCLI](https://github.com/jackwener/OpenCLI) 提供的图�
 
 **macOS / Linux:**
 ```bash
-curl -fsSL https://raw.githubusercontent.com/your-repo/prism/main/scripts/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/manuelm02/prism/main/scripts/install.sh | bash
 ```
 
 或下载后运行：
@@ -63,7 +63,7 @@ npm install -g @manuelm02/prism-cli
 
 ```bash
 # 克隆仓库
-git clone https://github.com/your-repo/prism.git
+git clone https://github.com/manuelm02/prism.git
 cd prism
 
 # 安装依赖
@@ -327,5 +327,5 @@ npm unlink -g prism-cli
 
 ## 📞 支持
 
-- 问题反馈：[GitHub Issues](https://github.com/your-repo/prism/issues)
-- 功能建议：[GitHub Discussions](https://github.com/your-repo/prism/discussions)
+- 问题反馈：[GitHub Issues](https://github.com/manuelm02/prism/issues)
+- 功能建议：[GitHub Discussions](https://github.com/manuelm02/prism/discussions)

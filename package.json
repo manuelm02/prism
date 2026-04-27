@@ -59,10 +59,10 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/your-repo/prism.git"
+    "url": "https://github.com/manuelm02/prism.git"
   },
   "bugs": {
-    "url": "https://github.com/your-repo/prism/issues"
+    "url": "https://github.com/manuelm02/prism/issues"
   },
-  "homepage": "https://github.com/your-repo/prism#readme"
+  "homepage": "https://github.com/manuelm02/prism#readme"
 }
