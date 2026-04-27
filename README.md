@@ -329,3 +329,7 @@ npm unlink -g prism-cli
 
 - 问题反馈：[GitHub Issues](https://github.com/manuelm02/prism/issues)
 - 功能建议：[GitHub Discussions](https://github.com/manuelm02/prism/discussions)
+
+## 🙏 致谢
+
+本项目基于 [OpenCLI](https://github.com/jackwener/OpenCLI) 构建，感谢 OpenCLI 团队提供的强大网页数据采集能力。正是有了这样的开源项目，才让 Prism 的诞生成为可能。
