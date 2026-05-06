@@ -1,6 +1,6 @@
 {
   "name": "@manuelm02/prism-cli",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "Prism - 可视化网页数据采集工具，为 OpenCLI 提供友好的图形界面",
   "main": "dist/cli/index.js",
   "bin": {
