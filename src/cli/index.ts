@@ -1,4 +1,4 @@
-import { spawn } from 'child_process'
+import { spawnSync } from 'child_process'
 import { createServer } from 'http'
 import { existsSync, readdirSync } from 'fs'
 import { join, dirname } from 'path'
@@ -10,50 +10,92 @@ const __dirname = dirname(__filename)
 
 const DEFAULT_PORT = 3000
 
+/**
+ * 搜索 OpenCLI 安装路径
+ * 支持: mise / nvm / fnm / 系统全局安装 / PATH 查找
+ */
 function findOpenCLI(): string | null {
+  // 1. 优先使用环境变量指定的路径
   if (process.env.OPENCLI_PATH && existsSync(process.env.OPENCLI_PATH)) {
     return process.env.OPENCLI_PATH
   }
-  
+
+  // 2. 搜索版本管理器的安装目录
+  const home = process.env.HOME || ''
+  const versionManagerDirs = [
+    // mise (https://mise.jdx.dev)
+    join(home, '.local', 'share', 'mise', 'installs', 'node'),
+    // nvm
+    join(home, '.nvm', 'versions', 'node'),
+    // fnm
+    join(home, '.fnm', 'node_versions'),
+    // asdf
+    join(home, '.asdf', 'installs', 'nodejs'),
+  ]
+
+  for (const baseDir of versionManagerDirs) {
+    if (!existsSync(baseDir)) continue
+    try {
+      const versions = readdirSync(baseDir).filter(v => v.startsWith('v'))
+      // 按版本号降序排列，优先使用最新版本
+      for (const version of versions.sort().reverse()) {
+        const binDirs = [
+          join(baseDir, version, 'bin', 'opencli'),          // mise / nvm / asdf
+          join(baseDir, version, 'installation', 'bin', 'opencli'), // fnm
+        ]
+        for (const opencliPath of binDirs) {
+          if (existsSync(opencliPath)) {
+            return opencliPath
+          }
+        }
+      }
+    } catch {
+      // 跳过无法读取的目录
+    }
+  }
+
+  // 3. 检查常见系统路径
   const commonPaths = [
     '/usr/local/bin/opencli',
     '/usr/bin/opencli',
+    '/opt/homebrew/bin/opencli',
   ]
-  
-  if (process.platform === 'darwin' || process.platform === 'linux') {
-    const nvmPath = join(process.env.HOME || '', '.nvm', 'versions', 'node')
-    if (existsSync(nvmPath)) {
-      const versions = readdirSync(nvmPath).filter(v => v.startsWith('v'))
-      for (const version of versions.sort().reverse()) {
-        const opencliPath = join(nvmPath, version, 'bin', 'opencli')
-        if (existsSync(opencliPath)) {
-          return opencliPath
-        }
-      }
-    }
-    
-    const fnmPath = join(process.env.HOME || '', '.fnm', 'node_versions')
-    if (existsSync(fnmPath)) {
-      const versions = readdirSync(fnmPath).filter(v => v.startsWith('v'))
-      for (const version of versions.sort().reverse()) {
-        const opencliPath = join(fnmPath, version, 'installation', 'bin', 'opencli')
-        if (existsSync(opencliPath)) {
-          return opencliPath
-        }
-      }
-    }
-  }
-  
   for (const p of commonPaths) {
     if (existsSync(p)) return p
   }
-  
+
+  // 4. 通过 which 命令查找（同步方式，正确读取输出）
   try {
-    const result = spawn('which', ['opencli'], { stdio: 'pipe' })
-    return 'opencli'
+    const result = spawnSync('which', ['opencli'], {
+      encoding: 'utf-8',
+      stdio: ['ignore', 'pipe', 'ignore'],
+    })
+    if (result.status === 0 && result.stdout) {
+      const outputPath = result.stdout.trim()
+      if (outputPath && existsSync(outputPath)) {
+        return outputPath
+      }
+    }
   } catch {
-    return null
+    // which 命令不可用，忽略
   }
+
+  // 5. 最后的兜底：假设 opencli 在 PATH 中
+  // 通过 spawnSync 验证它是否可执行
+  try {
+    const result = spawnSync('opencli', ['--version'], {
+      encoding: 'utf-8',
+      stdio: ['ignore', 'pipe', 'pipe'],
+      timeout: 5000,
+    })
+    if (result.status === 0) {
+      return 'opencli'
+    }
+  } catch {
+    // 验证失败
+  }
+
+  return null
 }
 
 function getStaticDir(): string {
